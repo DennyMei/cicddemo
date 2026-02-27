@@ -34,13 +34,15 @@ jobs:
       - name: Build and push Docker image
         id: build-image
         run: |
-          IMAGE_TAG=${{ github.sha }}
-          IMAGE_URI=${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
+          IMAGE_SHA=${{ github.sha }}
+          IMAGE_URI_SHA=${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_SHA}
+          IMAGE_URI_LATEST=${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
 
-          docker build -t $IMAGE_URI .
-          docker push $IMAGE_URI
+          docker build -t ${IMAGE_URI_SHA} .
+          docker tag ${IMAGE_URI_SHA} ${IMAGE_URI_LATEST}
 
-          echo "image=$IMAGE_URI" >> $GITHUB_OUTPUT
+          docker push ${IMAGE_URI_SHA}
+          docker push ${IMAGE_URI_LATEST}
 
       - name: Force new ECS deployment
         run: |
