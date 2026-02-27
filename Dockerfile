@@ -1,5 +1,5 @@
 # 使用官方 Node 运行时作为基础镜像
-FROM node:18-alpine
+FROM public.ecr.aws/docker/library/node:18-alpine
 
 # 设置工作目录
 WORKDIR /app
