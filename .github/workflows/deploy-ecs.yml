@@ -1,0 +1,50 @@
+name: Deploy to ECS
+
+on:
+  push:
+    branches:
+      - main   # 如果你用 master 就改成 master
+
+env:
+  AWS_REGION: cn-northwest-1   # 改成你的region
+  ECR_REGISTRY: 631533329771.dkr.ecr.cn-northwest-1.amazonaws.com.cn
+  ECR_REPOSITORY: cicddemo
+  ECS_CLUSTER: cicddemo
+  ECS_SERVICE: cicddemotask-service-03mymcw3
+  CONTAINER_NAME: cicddemo
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Docker image
+        id: build-image
+        run: |
+          IMAGE_TAG=${{ github.sha }}
+          IMAGE_URI=${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
+
+          docker build -t $IMAGE_URI .
+          docker push $IMAGE_URI
+
+          echo "image=$IMAGE_URI" >> $GITHUB_OUTPUT
+
+      - name: Force new ECS deployment
+        run: |
+          aws ecs update-service \
+            --cluster $ECS_CLUSTER \
+            --service $ECS_SERVICE \
+            --force-new-deployment

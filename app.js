@@ -4,7 +4,7 @@ const app = express();
 const version = process.env.APP_VERSION || "dev";
 
 app.get('/', (req, res) => {
-  res.send(`Hello from ECS! Version: ${version}`);
+  res.send(`CI success!Hello from ECS! Version: ${version}`);
 });
 
 app.get('/health', (req, res) => {
